@@ -1,0 +1,5 @@
+﻿method,type,n_clusters,noise_ratio,coverage,purity,homogeneity,NMI,ARI,silhouette
+Regex 關鍵字比對,Rule-based 下限,19,0.561,0.439,0.977,0.922,0.436,0.124,0.258
+TF-IDF + HDBSCAN,傳統 ML 對照,74,0.361,0.639,0.986,0.925,0.237,0.014,0.708
+BERT Embedding + K-Means,消融實驗,108,0.0,1.0,0.991,0.949,0.262,0.011,0.834
+BERTopic (BERT + HDBSCAN),Ours,110,0.069,0.931,0.991,0.951,0.271,0.012,0.882

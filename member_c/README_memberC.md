@@ -60,6 +60,7 @@ member_c/
 ├── c_common.py                  # 共用：載資料、欄名常數、單價計算、分群門檻
 ├── step1_clustering.py          # BERTopic + UMAP + HDBSCAN 商品語意分群（主流程）
 ├── step1b_cluster_experiments.py# 分群方法對照實驗（3 降維 × 3 分群）
+├── step1c_slide_baselines.py    # 簡報 Layer3 四列對照（Regex / TF-IDF+HDBSCAN / BERT+KMeans / Ours）
 ├── step2_unit_price.py          # 重複購買群篩選 + 每月加權單價時序
 ├── step3_inflation.py           # 量效應 / 價效應拆解（個人通膨，主流程）
 ├── step3b_decomp_experiments.py # 拆解替代方案對照（分群鍵、兩項/三項）
