@@ -226,6 +226,10 @@ uv run python step3_inflation.py --base 2025-10 --cur 2026-04   # 固定月對�
 - **使用者異質**：user 2 從 2025-10 才有資料、筆數少（428），單獨結論信賴度較低。
 - **上游分類誤差**：步驟 1 的群品質取決於 A 的 embedding；報告可做 oracle label vs BERT label
   的 error propagation 對照（與企劃書 6.2 呼應）。
+- **低頻 / 獨特品項無法納入商品群**：HDBSCAN 會把出現 < 10 次的品項判為 noise（user 2 的
+  noise 100% 屬此類），這些品項不進商品群分析。但此為良性邊界——通膨拆解本就要求 ≥5 次，
+  買一兩次的東西無法追蹤單價。詳見 [`EXPERIMENTS.md`](EXPERIMENTS.md) 的「設計討論」段
+  （含「為何三人 pooled 分群、小資料量使用者是否被犧牲」的答辯）。
 
 ---
 
