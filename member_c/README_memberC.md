@@ -57,12 +57,15 @@ uv run python step3_inflation.py
 
 ```
 member_c/
-├── c_common.py          # 共用：載資料、欄名常數、單價計算、分群門檻
-├── step1_clustering.py  # BERTopic + UMAP + HDBSCAN 商品語意分群
-├── step2_unit_price.py  # 重複購買群篩選 + 每月加權單價時序
-├── step3_inflation.py   # 量效應 / 價效應拆解（個人通膨）
-├── README_memberC.md    # 本檔
-└── outputs/             # 所有產出（csv + png）
+├── c_common.py                  # 共用：載資料、欄名常數、單價計算、分群門檻
+├── step1_clustering.py          # BERTopic + UMAP + HDBSCAN 商品語意分群（主流程）
+├── step1b_cluster_experiments.py# 分群方法對照實驗（3 降維 × 3 分群）
+├── step2_unit_price.py          # 重複購買群篩選 + 每月加權單價時序
+├── step3_inflation.py           # 量效應 / 價效應拆解（個人通膨，主流程）
+├── step3b_decomp_experiments.py # 拆解替代方案對照（分群鍵、兩項/三項）
+├── README_memberC.md            # 本檔（流程 + 完整替代方案）
+├── EXPERIMENTS.md               # 實驗紀錄與數字對照（給報告引用）★
+└── outputs/                     # 所有產出（csv + png）
 ```
 
 關鍵共用設定（`c_common.py`）：
@@ -155,6 +158,12 @@ uv run python step3_inflation.py --base 2025-10 --cur 2026-04   # 固定月對�
 
 > 期末報告的價值在於「比較與選擇」。以下列出每個環節若主方法效果不好可以換什麼，
 > 以及**判斷標準**與**怎麼在本程式碼切換**。
+> **其中 4.1/4.2（降維、分群）與 4.5（分群鍵）已實際跑成對照實驗，數字見 [`EXPERIMENTS.md`](EXPERIMENTS.md)。**
+>
+> ```powershell
+> uv run python step1b_cluster_experiments.py   # 3 降維 × 3 分群 對照
+> uv run python step3b_decomp_experiments.py    # exact vs cluster、兩項 vs 三項
+> ```
 
 ### 4.1 降維（目前：UMAP）
 
