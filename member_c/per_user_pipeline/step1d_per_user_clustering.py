@@ -19,10 +19,11 @@ from sklearn.metrics import (
     silhouette_score, homogeneity_score, normalized_mutual_info_score,
 )
 
+import pu_common as pu  # 設定 path 並提供本資料夾 OUT
 import c_common as cc
 from step1b_cluster_experiments import purity, run_hdbscan  # 沿用相同評估與分群設定
 
-OUT = cc.OUT_DIR / "per_user"
+OUT = pu.OUT
 OUT.mkdir(exist_ok=True)
 
 RANDOM_STATE = 42
@@ -180,7 +181,7 @@ def main():
     print("\n=== 跨人破碎度 ===")
     for k, v in frag.items():
         print(f"  {k}: {v}")
-    print("\n已輸出 outputs/per_user/ 下 exp_per_user_clustering.csv / .png / exp_per_user_fragmentation.csv")
+    print(f"\n已輸出至 {OUT}：exp_per_user_clustering.csv / .png / exp_per_user_fragmentation.csv")
 
 
 if __name__ == "__main__":

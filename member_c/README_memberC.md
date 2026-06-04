@@ -57,17 +57,50 @@ uv run python step3_inflation.py
 
 ```
 member_c/
-├── c_common.py                  # 共用：載資料、欄名常數、單價計算、分群門檻
-├── step1_clustering.py          # BERTopic + UMAP + HDBSCAN 商品語意分群（主流程）
-├── step1b_cluster_experiments.py# 分群方法對照實驗（3 降維 × 3 分群）
-├── step1c_slide_baselines.py    # 簡報 Layer3 四列對照（Regex / TF-IDF+HDBSCAN / BERT+KMeans / Ours）
-├── step2_unit_price.py          # 重複購買群篩選 + 每月加權單價時序
-├── step3_inflation.py           # 量效應 / 價效應拆解（個人通膨，主流程）
-├── step3b_decomp_experiments.py # 拆解替代方案對照（分群鍵、兩項/三項）
-├── README_memberC.md            # 本檔（流程 + 完整替代方案）
-├── EXPERIMENTS.md               # 實驗紀錄與數字對照（給報告引用）★
-└── outputs/                     # 所有產出（csv + png）
+│
+├── c_common.py                   # 共用：載資料、欄名常數、單價計算、分群門檻
+│
+│  ── 主流程 pipeline（pooled，三人一起分群）──────────────
+├── step1_clustering.py           # ① BERTopic+UMAP+HDBSCAN 商品語意分群（主流程）
+├── step2_unit_price.py           # ② 重複購買群篩選 + 每月加權單價時序
+├── step3_inflation.py            # ③ 量/價效應拆解（exact 分群鍵，舊版，已被 step3c 取代）
+├── step3c_personal_inflation.py  # ③★ 個人增量分析「這個月 vs 平常」（Layer3 主交付）
+│
+│  ── 對照實驗（給報告「嘗試了什麼」）────────────────────
+├── step1b_cluster_experiments.py # 分群方法對照（3 降維 × 3 分群，12 組）
+├── step1c_slide_baselines.py     # 簡報四列對照（Regex/TF-IDF+HDBSCAN/BERT+KMeans/Ours）
+├── step3b_decomp_experiments.py  # 拆解替代方案（exact vs cluster、兩項 vs 三項）
+│
+│  ── 文件 ───────────────────────────────────────────
+├── README_memberC.md             # 本檔（流程 + 完整替代方案 + 檔案架構）
+├── EXPERIMENTS.md                # 實驗紀錄與數字對照（給報告引用）★
+├── SLIDES_outline.md             # 簡報 8 頁大綱（配圖 + 講稿 + Q&A）
+├── ARCHITECTURE.md               # 系統架構（Mermaid 可編輯版）
+├── make_architecture.py          # 生成系統架構圖 PNG
+│
+├── outputs/                      # 主流程所有產出（csv + png，見下方清單）
+│
+└── per_user_pipeline/            # ★ 獨立對照：三人「分開分群→分開增量分析」
+    ├── pu_common.py              #   path + 本資料夾 outputs 導向
+    ├── pu_step1_clustering.py    #   三人各自分群
+    ├── pu_step3c_increment.py    #   各自增量分析（重用 step3c 邏輯）
+    ├── step1d_per_user_clustering.py # per-user vs pooled 分群品質對照
+    ├── README.md                 #   結論：小資料量 user 會崩
+    └── outputs/                  #   per-user 全部產出（pu_* / exp_per_user_*）
 ```
+
+### outputs/ 產出對照（主流程）
+
+| 檔案 | 來源 | 內容 |
+|---|---|---|
+| `step1_clusters.csv` / `step1_topics.csv` / `step1_umap_scatter.png` | step1 | 商品分群結果 |
+| `step2_repeat_groups.csv` / `step2_unit_price_ts.csv` / `step2_unit_price_top.png` | step2 | 重複購買群單價時序 |
+| `step3c_increment_breakdown.csv` / `step3c_user_summary.csv` / `step3c_user{0,1,2}.png` | step3c | **個人增量分析（主交付）** |
+| `step3_decomposition.csv` / `step3_user_summary.csv` / `step3_waterfall.png` | step3 | 舊版 exact 拆解（留存對照） |
+| `exp_clustering.{csv,png}` | step1b | 分群方法對照 |
+| `exp_slide_baselines.{csv,png}` | step1c | 簡報四列對照 |
+| `exp_decomposition.csv` | step3b | 拆解替代方案對照 |
+| `system_architecture.png` | make_architecture | 系統架構圖 |
 
 關鍵共用設定（`c_common.py`）：
 
