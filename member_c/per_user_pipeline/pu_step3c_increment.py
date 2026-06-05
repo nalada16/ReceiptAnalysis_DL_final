@@ -55,7 +55,7 @@ def main():
     all_break, summary = [], []
     for u in sorted(df[cc.COL_USER].unique()):
         sub = df[df[cc.COL_USER] == u]
-        dec, cur, n_base = s3.decompose_user(sub)   # 重用主流程拆解（含 MIN_TYPE_ROWS=10）
+        dec, cur, n_base = s3.decompose_user(sub)   # 重用主流程拆解（含 基期≥2月 且 量/價門檻）
         if dec.empty:
             print(f"user {u}: 清理+門檻後『無可分析類型』")
             summary.append({"user_id": u, "current_month": cur,

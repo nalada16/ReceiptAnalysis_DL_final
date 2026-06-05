@@ -182,10 +182,12 @@ member_c/
 # c_common.py
 MIN_COUNT  = 5   # 重複購買群至少出現 5 次
 MIN_MONTHS = 2   # 至少跨 2 個月才算可比較單價
-# step3c_personal_inflation.py
-MIN_TYPE_ROWS = 10    # 每類型至少 10 筆才計算增量
-MAX_PRICE_RATIO = 6   # 類型單價一致性門檻（p90/p10）
-GENERIC_KEYWORDS = [...]  # 剔除的佔位品名（代收/塑膠袋/餐飲費…）
+# step3c_personal_inflation.py — 增量分析「值得分析」門檻（per-user、每類型）
+MIN_BASE_MONTHS   = 2    # 基期至少出現 2 個月（「平常」要是多月平均）
+MIN_MONTHLY_QTY   = 10   # 月均數量 ≥ 10（量大就納入）
+MIN_MONTHLY_SPEND = 100  # 或 月均花費 ≥ 100（花錢多就納入）→ 兩者 OR
+MAX_PRICE_RATIO   = 6    # 類型單價一致性門檻（p90/p10）
+GENERIC_KEYWORDS  = [...] # 剔除的佔位品名（代收/塑膠袋/餐飲費…）
 ```
 
 ---

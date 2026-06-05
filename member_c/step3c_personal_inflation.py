@@ -30,8 +30,15 @@ import c_common as cc
 
 TOP_BREAKDOWN = 8   # 增量拆解圖顯示前 N 個貢獻最大的類型
 TOP_HISTORY = 5     # 成長歷史圖顯示前 N 個花費最高的類型
-MIN_TYPE_ROWS = 10   # 該使用者在此類型至少 10 筆才計算（資料夠才可信）
 MAX_PRICE_RATIO = 6  # 類型一致性：群內單價 p90/p10 超過此倍數視為「不純的類型」剔除
+
+# 增量分析的「值得分析」門檻（per-user、每類型）：
+#   基期須出現 ≥ MIN_BASE_MONTHS 個月（「平常」要是多月平均，P0/Q0 才穩）
+#   且（月均數量 ≥ MIN_MONTHLY_QTY 或 月均花費 ≥ MIN_MONTHLY_SPEND）
+#   → 量大（如每天喝的飲料）或花錢多（如貴但少買的正餐）擇一即納入。
+MIN_BASE_MONTHS = 2       # 基期至少出現幾個月
+MIN_MONTHLY_QTY = 10      # 平常每月平均數量門檻
+MIN_MONTHLY_SPEND = 100   # 平常每月平均花費門檻（NT$）
 
 # 通用/佔位品名：這些不是可比較的真實商品（單價無意義），整列剔除。
 GENERIC_KEYWORDS = [
@@ -96,8 +103,15 @@ def decompose_user(sub: pd.DataFrame):
         c_qty, c_amt = c[cc.COL_QTY].sum(), c[cc.COL_AMT].sum()
         if b_qty == 0 and c_qty == 0:
             continue
-        # 該使用者在此類型至少 MIN_TYPE_ROWS 筆才計算；且基期須有資料才能談「平常」
-        if (len(b) + len(c)) < MIN_TYPE_ROWS or len(b) == 0:
+        # 「值得分析」門檻（per-user、每類型）：
+        #   基期須出現 ≥ MIN_BASE_MONTHS 個月（平常要是多月平均）
+        #   且（月均數量夠多 或 月均花費夠高）才納入
+        b_months = b["month"].nunique()
+        if b_months < MIN_BASE_MONTHS:
+            continue
+        monthly_qty = b_qty / n_base
+        monthly_spend = b_amt / n_base
+        if not (monthly_qty >= MIN_MONTHLY_QTY or monthly_spend >= MIN_MONTHLY_SPEND):
             continue
         P0 = b_amt / b_qty if b_qty else np.nan
         P1 = c_amt / c_qty if c_qty else np.nan

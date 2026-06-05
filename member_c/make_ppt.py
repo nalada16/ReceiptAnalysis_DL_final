@@ -151,7 +151,7 @@ add_image_slide("3.2 與 Baseline 對照（驗證方法價值）", OUT_MAIN / "e
 
 add_image_slide("4. 為何三人一起分群（pooled）", OUT_PU / "exp_per_user_clustering.png",
                 bullets=["分群=建公共商品字典(pooled)；診斷=讀個人帳本(分人)",
-                         "分開分群：小資料量 user 2 可分析類型砍半(8→4)、失去跨人可比 → 否決"])
+                         "分開分群：小資料量 user 2 粒度崩塌(59→8 群)、失去跨人可比 → 否決"])
 
 add_bullets_slide("5. 顆粒度：兩層式商品分類", [
     ("細群 ~110 對增量分析太細 → 合併細群中心向量成『超類型』", 0),
