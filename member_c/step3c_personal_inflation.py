@@ -65,10 +65,11 @@ def load_typed():
     df = df[df["topic"].isin(keep_topic[keep_topic].index)].copy()
     print(f"剔除不純類型 {len(bad)} 群（單價落差>p90/p10>{MAX_PRICE_RATIO}），剩 {df['topic'].nunique()} 個類型")
 
-    # 類型標籤 = 群內最高頻品名
-    label = (df.groupby("topic")[cc.COL_ITEM]
-             .agg(lambda s: s.value_counts().index[0]))
-    df["type_label"] = df["topic"].map(label)
+    # 類型標籤 = 群內最高頻品名 +「等N款」，凸顯這是 cluster(類型)而非單品
+    top_item = df.groupby("topic")[cc.COL_ITEM].agg(lambda s: s.value_counts().index[0])
+    n_items = df.groupby("topic")[cc.COL_ITEM].nunique()
+    df["type_label"] = df["topic"].map(
+        lambda t: f"{top_item[t]} 等{n_items[t]}款" if n_items[t] > 1 else f"{top_item[t]}（單品）")
     return df
 
 

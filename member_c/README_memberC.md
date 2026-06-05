@@ -64,7 +64,9 @@ member_c/
 ├── step1_clustering.py           # ① BERTopic+UMAP+HDBSCAN 商品語意分群（主流程）
 ├── step2_unit_price.py           # ② 重複購買群篩選 + 每月加權單價時序
 ├── step3_inflation.py            # ③ 量/價效應拆解（exact 分群鍵，舊版，已被 step3c 取代）
-├── step3c_personal_inflation.py  # ③★ 個人增量分析「這個月 vs 平常」（Layer3 主交付）
+├── step3c_personal_inflation.py  # ③★ 個人增量分析「這個月 vs 平常」（Layer3 主交付，精準層）
+├── step3d_supertypes.py          # ③★ 兩層式：合併細群成超類型（故事層，K=15/25/35）
+├── cluster_members.py            # 工具：輸出 細群→成員品項 完整對照表
 │
 │  ── 對照實驗（給報告「嘗試了什麼」）────────────────────
 ├── step1b_cluster_experiments.py # 分群方法對照（3 降維 × 3 分群，12 組）
@@ -73,7 +75,8 @@ member_c/
 │
 │  ── 文件 ───────────────────────────────────────────
 ├── README_memberC.md             # 本檔（流程 + 完整替代方案 + 檔案架構）
-├── EXPERIMENTS.md                # 實驗紀錄與數字對照（給報告引用）★
+├── EXPERIMENTS.md                # 方法/baseline 實驗紀錄（給報告引用）★
+├── GRANULARITY_EXPERIMENTS.md    # 顆粒度實驗：分開分群 vs 合併超類型 ★
 ├── SLIDES_outline.md             # 簡報 8 頁大綱（配圖 + 講稿 + Q&A）
 ├── ARCHITECTURE.md               # 系統架構（Mermaid 可編輯版）
 ├── make_architecture.py          # 生成系統架構圖 PNG
@@ -95,7 +98,9 @@ member_c/
 |---|---|---|
 | `step1_clusters.csv` / `step1_topics.csv` / `step1_umap_scatter.png` | step1 | 商品分群結果 |
 | `step2_repeat_groups.csv` / `step2_unit_price_ts.csv` / `step2_unit_price_top.png` | step2 | 重複購買群單價時序 |
-| `step3c_increment_breakdown.csv` / `step3c_user_summary.csv` / `step3c_user{0,1,2}.png` | step3c | **個人增量分析（主交付）** |
+| `step3c_increment_breakdown.csv` / `step3c_user_summary.csv` / `step3c_user{0,1,2}.png` | step3c | **個人增量分析（主交付，精準層）** |
+| `step3c_cluster_members.csv` | cluster_members | 細群 → 成員品項完整對照表 |
+| `supertypes_K{15,25,35}.csv` / `step3d_K{K}_user{u}.png` / `step3d_compare_summary.csv` | step3d | **兩層式超類型增量分析（故事層，K=25 推薦）** |
 | `step3_decomposition.csv` / `step3_user_summary.csv` / `step3_waterfall.png` | step3 | 舊版 exact 拆解（留存對照） |
 | `exp_clustering.{csv,png}` | step1b | 分群方法對照 |
 | `exp_slide_baselines.{csv,png}` | step1c | 簡報四列對照 |

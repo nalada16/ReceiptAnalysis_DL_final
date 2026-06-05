@@ -11,7 +11,10 @@
 | 3 | 簡報四列對照 | Regex / TF-IDF+HDBSCAN / BERT+KMeans / Ours | `step1c` | Ours 同時解決「語意辨識不清」(覆蓋率 44%→93%) 與「雜訊干擾」(noise 36%→7%) |
 | 4 | pooled vs 分人（設計討論） | 為何三人一起分群 | （分析） | 分群=建公共商品字典(pooled)、診斷=讀個人帳本(分人) |
 | 5 | **per-user 全分開管線** | 分開分群→分開增量分析 | `per_user_pipeline/` | 大 user 可行，**小 user(2) 可分析類型砍半 8→4、崩潰** → 確認採 pooled |
-| ★ | **個人增量分析（主交付）** | 這個月 vs 平常，按類型拆解變貴/買更多 | `step3c` | 個人通膨是**品項分化**的，非齊漲（清燉牛肉 +11%、波士頓 −6%） |
+| 6 | **顆粒度：分開 vs 合併超類型** | per-user / 超類型 K=15·25·35 | `step3d` ＋ `GRANULARITY_EXPERIMENTS.md` | 細群太細→合併成超類型；**K=25 最好講故事**；per-user 否決 |
+| ★ | **個人增量分析（主交付）** | 這個月 vs 平常，按類型拆解變貴/買更多 | `step3c`(精準層)/`step3d`(故事層) | 個人通膨是**品項分化**的，非齊漲（清燉牛肉 +11%、波士頓 −6%） |
+
+> 顆粒度的完整探索（分開分群 vs 合併超類型）放在獨立檔 **`GRANULARITY_EXPERIMENTS.md`**。
 
 > 重跑全部：見各節「重跑」指令。原始數據都在 `outputs/`（per-user 在 `per_user_pipeline/outputs/`）。
 

@@ -42,9 +42,11 @@ def build_typed_peruser():
     df = df[df["topic"].isin(keep[keep].index)].copy()
     print(f"保留一致性 OK 的 per-user 類型 {df['topic'].nunique()} 個")
 
-    # 3) 類型標籤 = 群內最高頻品名
-    label = df.groupby("topic")[cc.COL_ITEM].agg(lambda s: s.value_counts().index[0])
-    df["type_label"] = df["topic"].map(label)
+    # 3) 類型標籤 = 群內最高頻品名 +「等N款」，凸顯這是 cluster(類型)而非單品
+    top_item = df.groupby("topic")[cc.COL_ITEM].agg(lambda s: s.value_counts().index[0])
+    n_items = df.groupby("topic")[cc.COL_ITEM].nunique()
+    df["type_label"] = df["topic"].map(
+        lambda t: f"{top_item[t]} 等{n_items[t]}款" if n_items[t] > 1 else f"{top_item[t]}（單品）")
     return df
 
 
