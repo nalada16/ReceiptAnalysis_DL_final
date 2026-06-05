@@ -150,12 +150,17 @@ member_c/
 | `step2_unit_price_ts.csv` / `step2_repeat_groups.csv` | 重複購買群每月單價、通過門檻的群清單 |
 | `step2_unit_price_top.png` | 高頻群的單價時序折線 |
 
-**兩層超類型**
+**兩層超類型（K=25 為主分析）**
 | 檔案 | 能看到什麼 |
 |---|---|
-| `supertypes_K{15,25,35}.csv` | 各 K 的超類型→成員細群/品項對照 → 想知道「某大類含哪些細群」看這 |
-| `step3d_K{15,25,35}_user{0,1,2}.png` | 各 K、各人的超類型增量圖（K=25 推薦） |
-| `step3d_compare_summary.csv` | 三種 K 的逐人摘要（選哪個 K） |
+| `step3d_K25_user{0,1,2}.png` | 各人超類型增量圖（左:多花在哪 右:單價歷史） |
+| `history_user{0,1,2}.png` | 各人**所有**通過門檻超類型的完整單價歷史（>7 個自動分兩張） |
+| **`step3d_increment_breakdown.csv`** | **每 user×超類型的增量數字**（P0/P1/Q0/Q1/變貴/買更多/delta）→ 想看某人某類型怎麼變看這 |
+| **`increment_detail_K25.csv`** | **每 user×超類型×品項 的逐品項明細**（平常 vs 本月 數量/金額/單價）→ 想看「user0 某類型有哪些品項、各多少錢」看這 |
+| `supertype_K25_members.csv` | 每超類型的完整品項（全體合計，非分人） |
+| `supertypes_K{15,25,35}.csv` | 各 K 的超類型→成員細群對照 |
+| `step3d_K{15,35}_user{0,1,2}.png` / `step3d_compare_summary.csv` | K=15/35 對照、選 K 摘要 |
+| 重跑明細 | `uv run python make_increment_detail.py` |
 
 **對照實驗數據**
 | 檔案 | 能看到什麼 |
