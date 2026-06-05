@@ -92,26 +92,100 @@ member_c/
     └── outputs/                  #   per-user 全部產出（pu_* / exp_per_user_*）
 ```
 
-### outputs/ 產出對照（主流程）
+### 2A. 程式檔（每支做什麼、怎麼跑）
 
-| 檔案 | 來源 | 內容 |
-|---|---|---|
-| `step1_clusters.csv` / `step1_topics.csv` / `step1_umap_scatter.png` | step1 | 商品分群結果 |
-| `step2_repeat_groups.csv` / `step2_unit_price_ts.csv` / `step2_unit_price_top.png` | step2 | 重複購買群單價時序 |
-| `step3c_increment_breakdown.csv` / `step3c_user_summary.csv` / `step3c_user{0,1,2}.png` | step3c | **個人增量分析（主交付，精準層）** |
-| `step3c_cluster_members.csv` | cluster_members | 細群 → 成員品項完整對照表 |
-| `supertypes_K{15,25,35}.csv` / `step3d_K{K}_user{u}.png` / `step3d_compare_summary.csv` | step3d | **兩層式超類型增量分析（故事層，K=25 推薦）** |
-| `step3_decomposition.csv` / `step3_user_summary.csv` / `step3_waterfall.png` | step3 | 舊版 exact 拆解（留存對照） |
-| `exp_clustering.{csv,png}` | step1b | 分群方法對照 |
-| `exp_slide_baselines.{csv,png}` | step1c | 簡報四列對照 |
-| `exp_decomposition.csv` | step3b | 拆解替代方案對照 |
-| `system_architecture.png` | make_architecture | 系統架構圖 |
+| 程式 | 角色 | 做什麼 | 重跑指令 |
+|---|---|---|---|
+| `c_common.py` | 共用 | 載入 CSV+embedding、欄名常數、單價計算、UTF-8 設定 | （被 import） |
+| `step1_clustering.py` | 主流程① | BERTopic+UMAP+HDBSCAN 商品語意分群 | `uv run python step1_clustering.py` |
+| `step2_unit_price.py` | 主流程② | 重複購買群篩選 + 每月加權單價時序 | `uv run python step2_unit_price.py` |
+| `step3c_personal_inflation.py` | 主流程③★ | 個人增量分析「這月vs平常，變貴/買更多」（精準層） | `uv run python step3c_personal_inflation.py` |
+| `step3d_supertypes.py` | 主流程③★ | 兩層式：合併細群成超類型（故事層，K=15/25/35） | `uv run python step3d_supertypes.py` |
+| `step3_inflation.py` | 舊版 | exact 分群鍵的量/價拆解（已被 step3c 取代，留存） | `uv run python step3_inflation.py` |
+| `cluster_members.py` | 工具 | 輸出 細群→成員品項 完整對照表 | `uv run python cluster_members.py` |
+| `make_naming_template.py` | 工具 | 產生人工命名表（細群+超類型，merge-safe） | `uv run python make_naming_template.py` |
+| `naming.py` | 共用 | 命名表讀寫邏輯（被 step3c/step3d import） | （被 import） |
+| `step1b_cluster_experiments.py` | 實驗1 | 分群方法對照（3 降維 × 3 分群，12 組） | `uv run python step1b_cluster_experiments.py` |
+| `step1c_slide_baselines.py` | 實驗3 | baseline 四列對照（Regex/TF-IDF/KMeans/Ours） | `uv run python step1c_slide_baselines.py` |
+| `step3b_decomp_experiments.py` | 實驗2 | 拆解替代方案（exact vs cluster、兩項vs三項） | `uv run python step3b_decomp_experiments.py` |
+| `make_architecture.py` | 工具 | 生成系統架構圖 PNG | `uv run python make_architecture.py` |
+| `make_ppt.py` | 工具 | 生成報告簡報 `member_C_report.pptx` | `uv run python make_ppt.py` |
+| `per_user_pipeline/pu_step1_clustering.py` | 對照 | 三人各自分群 | （見該資料夾） |
+| `per_user_pipeline/pu_step3c_increment.py` | 對照 | 各自增量分析 | （見該資料夾） |
+| `per_user_pipeline/step1d_per_user_clustering.py` | 對照 | per-user vs pooled 分群品質 | （見該資料夾） |
 
-關鍵共用設定（`c_common.py`）：
+### 2B. 文件檔（讀哪份）
+
+| 文件 | 給誰看 |
+|---|---|
+| `REPORT.md` ★ | **報告/口頭用**：完整分析報告（分群內容、增量發現、核心結論、附圖） |
+| `README_memberC.md` | 技術重現：流程、替代方案、**本檔案/數據清單** |
+| `EXPERIMENTS.md` | 方法/baseline 實驗紀錄 + 指標計算公式（purity/NMI/silhouette） |
+| `GRANULARITY_EXPERIMENTS.md` | 顆粒度實驗：分開分群 vs 合併超類型 |
+| `per_user_pipeline/REPORT_per_user.md` | per-user 對照管線的完整分析報告 |
+| `NAMING.md` | **人工命名流程**：自己填 cluster 名字讓圖表標籤更好看 |
+| `SLIDES_outline.md` | 簡報 8 頁大綱（配圖+講稿+Q&A） |
+| `cluster_names.csv` / `supertype_names_K{15,25,35}.csv` | 命名表（編輯 `custom_name` 欄填名字） |
+| `ARCHITECTURE.md` | 系統架構（Mermaid 可編輯版） |
+| `member_C_report.pptx` | 已生成的 13 頁簡報檔 |
+
+### 2C. 數據產出 `outputs/`（每個檔「能看到什麼」）
+
+> 想看什麼，直接開對應 CSV/PNG。CSV 皆 `utf-8-sig`（Excel 不亂碼）。
+
+**商品分群**
+| 檔案 | 能看到什麼 |
+|---|---|
+| `step1_clusters.csv` | 每一筆明細被分到哪個群（`topic` 欄）→ 想知道某筆屬哪群看這 |
+| `step1_topics.csv` | 每群的代表品項標籤 |
+| `step3c_cluster_members.csv` | **每個細群完整成員清單**：含哪些品項各幾次、單價分布、是否通過一致性 → 想知道「某牛肉群到底含什麼」看這 |
+| `step1_umap_scatter.png` | 分群在 2D 空間的散佈圖（佐證群分得開） |
+
+**單價/增量（主交付）**
+| 檔案 | 能看到什麼 |
+|---|---|
+| `step3c_increment_breakdown.csv` | **每人每類型**的 P0/P1/Q0/Q1/變貴/買更多/增量 → 想查「某人某類型怎麼變」看這 |
+| `step3c_user_summary.csv` | 每人本月多花多少、變貴 vs 買更多佔比 |
+| `step3c_user{0,1,2}.png` | 每人增量圖（左:多花在哪類型 右:單價成長歷史） |
+| `step2_unit_price_ts.csv` / `step2_repeat_groups.csv` | 重複購買群每月單價、通過門檻的群清單 |
+| `step2_unit_price_top.png` | 高頻群的單價時序折線 |
+
+**兩層超類型**
+| 檔案 | 能看到什麼 |
+|---|---|
+| `supertypes_K{15,25,35}.csv` | 各 K 的超類型→成員細群/品項對照 → 想知道「某大類含哪些細群」看這 |
+| `step3d_K{15,25,35}_user{0,1,2}.png` | 各 K、各人的超類型增量圖（K=25 推薦） |
+| `step3d_compare_summary.csv` | 三種 K 的逐人摘要（選哪個 K） |
+
+**對照實驗數據**
+| 檔案 | 能看到什麼 |
+|---|---|
+| `exp_clustering.csv` / `.png` | 12 組分群方法的 purity/NMI/silhouette/noise → 看哪種分群最好 |
+| `exp_slide_baselines.csv` / `.png` | Regex/TF-IDF/KMeans/Ours 四列對照 → 看 Ours 強在哪 |
+| `exp_decomposition.csv` | exact vs cluster、兩項 vs 三項拆解的數字差異 |
+| `step3_*`（waterfall 等） | 舊版 exact 拆解結果（留存對照） |
+| `system_architecture.png` | 系統架構圖（A→B→C） |
+
+### 2D. `per_user_pipeline/outputs/`（分開分群對照）
+
+| 檔案 | 能看到什麼 |
+|---|---|
+| `pu_clusters.csv` | 三人**各自**分群的結果（`pu_topic`） |
+| `pu_step3c_increment_breakdown.csv` / `pu_step3c_user_summary.csv` | per-user 增量分析逐類型/逐人結果 |
+| `pu_step3c_user{0,1,2}.png` | per-user 增量圖 → 對照可見 **user 2 只剩 4 類型** |
+| `exp_per_user_clustering.csv` / `.png` | per-user vs pooled 分群品質（群數/noise/silhouette） |
+| `exp_per_user_fragmentation.csv` | 跨人破碎度（共享商品 pooled 100% vs per-user 0%） |
+
+### 2E. 關鍵共用設定
 
 ```python
-MIN_COUNT  = 5   # 重複購買群至少出現 5 次（企劃書 5~10）
+# c_common.py
+MIN_COUNT  = 5   # 重複購買群至少出現 5 次
 MIN_MONTHS = 2   # 至少跨 2 個月才算可比較單價
+# step3c_personal_inflation.py
+MIN_TYPE_ROWS = 10    # 每類型至少 10 筆才計算增量
+MAX_PRICE_RATIO = 6   # 類型單價一致性門檻（p90/p10）
+GENERIC_KEYWORDS = [...]  # 剔除的佔位品名（代收/塑膠袋/餐飲費…）
 ```
 
 ---

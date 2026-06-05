@@ -68,6 +68,13 @@ def assign_super(df: pd.DataFrame, emb: np.ndarray, K: int) -> pd.DataFrame:
     label_map = s.groupby("super").apply(lab, include_groups=False)
     s["topic"] = s["super"]                                   # 讓 step3c 以 super 為單位
     s["type_label"] = s["super"].map(label_map)
+
+    # 人工命名覆寫：supertype_names_K{K}.csv 有填就用你的名字
+    import naming
+    names = naming.load_names(naming.super_names_path(K), "super")
+    if names:
+        s["type_label"] = s["super"].map(lambda t: names.get(t, label_map[t]))
+        print(f"K={K}: 套用人工命名 {len(names)} 個超類型")
     return s
 
 

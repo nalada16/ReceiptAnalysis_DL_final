@@ -70,6 +70,13 @@ def load_typed():
     n_items = df.groupby("topic")[cc.COL_ITEM].nunique()
     df["type_label"] = df["topic"].map(
         lambda t: f"{top_item[t]} 等{n_items[t]}款" if n_items[t] > 1 else f"{top_item[t]}（單品）")
+
+    # 人工命名覆寫：cluster_names.csv 有填 custom_name 就用你的名字（沒填維持自動）
+    import naming
+    names = naming.load_names(naming.FINE_NAMES, "topic")
+    if names:
+        df["type_label"] = df.apply(lambda r: names.get(r["topic"], r["type_label"]), axis=1)
+        print(f"套用人工命名 {len(names)} 個細群（cluster_names.csv）")
     return df
 
 
