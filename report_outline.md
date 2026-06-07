@@ -14,7 +14,7 @@
 ---
 
 ## p2 — 系統 / 實驗架構
-三階段流程（`圖：outputs/system_architecture.png` 或自畫流程圖）：
+三階段流程（`圖：member_c/outputs/layer3_architecture.png`，本 part 專屬架構圖）：
 - **第一階段（精準層）**：BERT embedding → UMAP 降維 → HDBSCAN → ~110 細群。
 - **第二階段（故事層）**：去除 noise 與不純細群 → 對細群中心向量**合併**成 25 個超類型。
   - 註：是「合併細群」不是「重新分品項」。
