@@ -19,15 +19,14 @@ for cand in ["Microsoft JhengHei", "Microsoft YaHei", "SimHei", "PingFang TC"]:
         plt.rcParams["axes.unicode_minus"] = False
         break
 
-# 配色（柔和粉/紫/藍綠 + 灰）
 SALMON = dict(fc="#EBA9A3", ec="#D98A82", tc="#6E2B25", sc="#8C463F")
 PURPLE = dict(fc="#C9CBEC", ec="#A9ACDD", tc="#34346A", sc="#56568C")
 TEAL = dict(fc="#8FBEB3", ec="#6FA99B", tc="#1E4A40", sc="#356B5E")
 GREY = dict(fc="#F3F3F3", ec="#C2C2C2", tc="#555555", sc="#888888")
 
-fig, ax = plt.subplots(figsize=(8.6, 12.4))
+fig, ax = plt.subplots(figsize=(8.6, 13.2))
 ax.set_xlim(0, 10)
-ax.set_ylim(0, 17)
+ax.set_ylim(0, 17.5)
 ax.axis("off")
 
 
@@ -38,9 +37,9 @@ def box(cx, cy, w, h, title, subtitle, style, tsize=12, ssize=8.5, dashed=False)
         fc=style["fc"], ec=style["ec"], lw=1.6,
         linestyle="--" if dashed else "-", zorder=2))
     if subtitle:
-        ax.text(cx, cy + h * 0.16, title, ha="center", va="center",
+        ax.text(cx, cy + h * 0.17, title, ha="center", va="center",
                 fontsize=tsize, fontweight="bold", color=style["tc"], zorder=3)
-        ax.text(cx, cy - h * 0.24, subtitle, ha="center", va="center",
+        ax.text(cx, cy - h * 0.25, subtitle, ha="center", va="center",
                 fontsize=ssize, color=style["sc"], zorder=3)
     else:
         ax.text(cx, cy, title, ha="center", va="center",
@@ -63,55 +62,54 @@ def dsep(y):
 
 
 # ===== Step 1 =====
-step_label(16.5, "Step 1　商品語意分群（精準層）")
-b1 = box(5, 15.5, 5.4, 1.05, "BERT Embedding（768 維）",
+step_label(16.9, "Step 1　商品語意分群（精準層）")
+b1 = box(5, 16.0, 5.4, 0.95, "BERT Embedding（768 維）",
          "每筆明細的語意向量 ← Task 1", SALMON)
-b2 = box(5, 13.8, 6.6, 1.05, "UMAP 降維 → HDBSCAN 密度分群",
+b2 = box(5, 14.5, 6.6, 0.95, "UMAP 降維 → HDBSCAN 密度分群",
          "不需預設群數、label = −1 自動過濾離群品項", PURPLE)
 arrow(b1["bot"], b2["top"])
-# 細群範例列
-arrow(b2["bot"], (5, 12.55))
+arrow(b2["bot"], (5, 13.35))
 labels1 = ["美式咖啡群", "麵店餐點群", "牛肉麵店群", "其他細群…"]
 subs1 = ["≥10 次", "≥10 次", "≥10 次", "自動識別"]
 for i, (lab, sub) in enumerate(zip(labels1, subs1)):
     cx = 1.55 + i * 2.3
-    box(cx, 12.0, 2.05, 0.95, lab, sub, GREY, tsize=10, ssize=8,
-        dashed=(i == 3))
-ax.text(9.55, 12.0, "≈110 群", ha="right", va="center", fontsize=9,
+    box(cx, 12.8, 2.05, 0.9, lab, sub, GREY, tsize=10, ssize=8, dashed=(i == 3))
+ax.text(9.55, 12.8, "≈110 群", ha="right", va="center", fontsize=9,
         color="#888", style="italic")
 
-dsep(11.1)
+dsep(11.95)
 
-# ===== Step 2 =====
-step_label(10.6, "Step 2　兩層合併（故事層）")
-b3 = box(5, 9.7, 7.0, 1.05, "去 noise + 不純群 → 對細群中心 Ward 合併",
-         "可直接指定 K、只算 ~108 點、一個細群一票", PURPLE)
-arrow((5, 11.1 - 0.55), b3["top"])  # 從分隔線下方進入
-arrow(b3["bot"], (5, 8.45))
+# ===== Step 2（拆成兩個框）=====
+step_label(11.55, "Step 2　兩層合併（故事層）")
+bf = box(5, 10.7, 6.4, 0.9, "去除 noise + 不純群",
+         "濾掉 label=−1 與單價落差 p90/p10 > 6 的雜物群", PURPLE)
+arrow((5, 11.95 - 0.55), bf["top"])
+ba = box(5, 9.2, 7.2, 0.95, "Agglomerative Hierarchical Clustering",
+         "對細群中心向量做 Ward 合併（可指定 K、確定性）", PURPLE)
+arrow(bf["bot"], ba["top"])
+arrow(ba["bot"], (5, 8.05))
 labels2 = ["正餐主食", "手搖飲料", "瓶裝茶飲", "…共 25 類"]
 subs2 = ["38 款", "54 款", "64 款", "超類型"]
 for i, (lab, sub) in enumerate(zip(labels2, subs2)):
     cx = 1.55 + i * 2.3
-    box(cx, 7.9, 2.05, 0.95, lab, sub, GREY, tsize=10, ssize=8,
-        dashed=(i == 3))
+    box(cx, 7.5, 2.05, 0.9, lab, sub, GREY, tsize=10, ssize=8, dashed=(i == 3))
 
-dsep(7.0)
+dsep(6.65)
 
 # ===== Step 3 =====
-step_label(6.5, "Step 3　個人化消費增量分析")
-b4 = box(5, 5.6, 7.0, 1.05, "各超類型「這個月 vs 平常」月均單價 / 數量",
+step_label(6.25, "Step 3　個人化消費增量分析")
+b4 = box(5, 5.4, 7.0, 0.95, "各超類型「這個月 vs 平常」月均單價 / 數量",
          "平常 = 之前各月月均；這個月 = 最新月", SALMON)
-arrow((5, 7.0 - 0.55), b4["top"])
-b5 = box(5, 3.9, 6.4, 1.05, "兩因子拆解公式",
+arrow((5, 6.65 - 0.55), b4["top"])
+b5 = box(5, 3.85, 6.4, 0.95, "兩因子拆解公式",
          "總增量 = 價的效應（變貴） + 量的效應（買更多）", PURPLE)
 arrow(b4["bot"], b5["top"])
-# 兩輸出
-o1 = box(2.9, 2.1, 3.0, 1.0, "價的效應", "東西變貴了多少", TEAL, tsize=11, ssize=8.5)
-o2 = box(7.1, 2.1, 3.0, 1.0, "量的效應", "買更多了多少", TEAL, tsize=11, ssize=8.5)
-arrow(b5["bot"], (2.9, 2.62))
-arrow(b5["bot"], (7.1, 2.62))
+o1 = box(2.9, 2.1, 3.0, 0.95, "價的效應", "東西變貴了多少", TEAL, tsize=11, ssize=8.5)
+o2 = box(7.1, 2.1, 3.0, 0.95, "量的效應", "買更多了多少", TEAL, tsize=11, ssize=8.5)
+arrow(b5["bot"], (2.9, 2.58))
+arrow(b5["bot"], (7.1, 2.58))
 
-ax.text(5, 1.05, "驗證：價效應 + 量效應 = 總增量　|　可下鑽到品項層級回查",
+ax.text(5, 1.1, "驗證：價效應 + 量效應 = 總增量　|　可下鑽到品項層級回查",
         ha="center", va="center", fontsize=9, color="#777", style="italic")
 
 fig.tight_layout()
