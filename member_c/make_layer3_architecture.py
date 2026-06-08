@@ -81,8 +81,8 @@ dsep(11.95)
 
 # ===== Step 2（拆成兩個框）=====
 step_label(11.55, "Step 2　兩層合併（故事層）")
-bf = box(5, 10.7, 6.4, 0.9, "去除 noise + 不純群",
-         "濾掉 label=−1 與單價落差 p90/p10 > 6 的雜物群", PURPLE)
+bf = box(5, 10.7, 6.4, 0.9, "去除 noise",
+         "濾掉 HDBSCAN 標記為 label=−1 的離群品項", PURPLE)
 arrow((5, 11.95 - 0.55), bf["top"])
 ba = box(5, 9.2, 7.2, 0.95, "Agglomerative Hierarchical Clustering",
          "對細群中心向量做 Ward 合併（可指定 K、確定性）", PURPLE)
