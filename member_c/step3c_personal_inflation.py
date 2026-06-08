@@ -166,9 +166,15 @@ def plot_user(u, dec, sub, cur, n_base, total_extra, path):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+    import matplotlib.gridspec as gridspec
     set_font()
 
-    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(24, 7))
+    fig = plt.figure(figsize=(22, 10))
+    gs = gridspec.GridSpec(3, 2, width_ratios=[1.1, 1], hspace=0.55, wspace=0.35)
+    ax1 = fig.add_subplot(gs[:, 0])   # 左欄：增量拆解（佔全高）
+    ax2 = fig.add_subplot(gs[0, 1])   # 右上：總花費
+    ax3 = fig.add_subplot(gs[1, 1])   # 右中：總數量
+    ax4 = fig.add_subplot(gs[2, 1])   # 右下：平均單價
 
     # --- 左：增量拆解（變貴 vs 買更多）---
     top = dec.reindex(dec["delta_spend"].abs().sort_values(ascending=False).index).head(TOP_BREAKDOWN)
@@ -187,45 +193,41 @@ def plot_user(u, dec, sub, cur, n_base, total_extra, path):
     ax1.set_title(f"user {u}｜這個月({cur})比平常{sign} {abs(total_extra):.0f} 元，花在哪些類型")
     ax1.legend(loc="lower right")
 
+    # 準備右側折線圖資料
     top_spend = dec.reindex(dec["current_spend"].sort_values(ascending=False).index).head(TOP_HISTORY)
     topic_list = top_spend["topic"].tolist()
     label_map = dict(zip(dec["topic"], dec["type_label"]))
     all_months = sorted(sub["month"].unique())
     mpos = {m: i for i, m in enumerate(all_months)}
-    xticks = range(len(all_months))
+    xticks = list(range(len(all_months)))
     xlabels = [str(m) for m in all_months]
 
-    # --- 中：平均單價成長歷史（價格/數量）---
-    ts = monthly_unit_price(sub, topic_list)
-    for t in topic_list:
-        d = ts[ts["topic"] == t].sort_values("month")
-        if len(d) < 2:
-            continue
-        first, last = d["unit_price"].iloc[0], d["unit_price"].iloc[-1]
-        chg = (last / first - 1) * 100 if first else 0
-        lab = f"{str(label_map[t])[:10]} ({chg:+.0f}%)"
-        ax2.plot([mpos[m] for m in d["month"]], d["unit_price"].values, marker="o", label=lab)
-    ax2.set_xticks(xticks); ax2.set_xticklabels(xlabels, rotation=45, ha="right")
-    ax2.set_xlabel("month"); ax2.set_ylabel("平均單價 (NT$)")
-    ax2.set_title(f"user {u}｜主要類型平均單價歷史")
-    ax2.legend(fontsize=8, loc="best")
+    # 一次聚合三個指標
+    s = sub[sub["topic"].isin(topic_list)]
+    g = s.groupby(["topic", "month"]).agg(
+        amt=(cc.COL_AMT, "sum"),
+        qty=(cc.COL_QTY, "sum")
+    ).reset_index()
+    g["unit_price"] = g["amt"] / g["qty"]
 
-    # --- 右：月購買數量歷史 ---
-    tq = monthly_qty(sub, topic_list)
-    for t in topic_list:
-        d = tq[tq["topic"] == t].sort_values("month")
-        if len(d) < 2:
-            continue
-        first, last = d["qty"].iloc[0], d["qty"].iloc[-1]
-        chg = (last / first - 1) * 100 if first else 0
-        lab = f"{str(label_map[t])[:10]} ({chg:+.0f}%)"
-        ax3.plot([mpos[m] for m in d["month"]], d["qty"].values, marker="o", label=lab)
-    ax3.set_xticks(xticks); ax3.set_xticklabels(xlabels, rotation=45, ha="right")
-    ax3.set_xlabel("month"); ax3.set_ylabel("月購買數量")
-    ax3.set_title(f"user {u}｜主要類型月購買數量歷史")
-    ax3.legend(fontsize=8, loc="best")
+    def draw_line(ax, col, ylabel, title):
+        for t in topic_list:
+            d = g[g["topic"] == t].sort_values("month")
+            if len(d) < 2:
+                continue
+            first, last = d[col].iloc[0], d[col].iloc[-1]
+            chg = (last / first - 1) * 100 if first else 0
+            lab = f"{str(label_map[t])[:10]} ({chg:+.0f}%)"
+            ax.plot([mpos[m] for m in d["month"]], d[col].values, marker="o", label=lab)
+        ax.set_xticks(xticks); ax.set_xticklabels(xlabels, rotation=40, ha="right", fontsize=8)
+        ax.set_ylabel(ylabel, fontsize=9)
+        ax.set_title(title, fontsize=10)
+        ax.legend(fontsize=7, loc="best")
 
-    fig.tight_layout()
+    draw_line(ax2, "amt",        "總花費 (NT$)",   f"user {u}｜月總花費")
+    draw_line(ax3, "qty",        "購買數量",        f"user {u}｜月購買數量")
+    draw_line(ax4, "unit_price", "平均單價 (NT$)", f"user {u}｜月平均單價")
+
     fig.savefig(path, dpi=140, bbox_inches="tight")
     plt.close(fig)
 
