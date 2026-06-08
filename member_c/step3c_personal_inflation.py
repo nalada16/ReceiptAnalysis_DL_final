@@ -145,6 +145,13 @@ def monthly_unit_price(sub: pd.DataFrame, topics):
     return g.reset_index()
 
 
+def monthly_qty(sub: pd.DataFrame, topics):
+    """某些類型的每月數量（數量成長歷史用）。"""
+    s = sub[sub["topic"].isin(topics)]
+    g = s.groupby(["topic", "month"]).agg(qty=(cc.COL_QTY, "sum"))
+    return g.reset_index()
+
+
 def set_font():
     import matplotlib.pyplot as plt
     import matplotlib.font_manager as fm
@@ -161,11 +168,11 @@ def plot_user(u, dec, sub, cur, n_base, total_extra, path):
     import matplotlib.pyplot as plt
     set_font()
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 7))
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(24, 7))
 
-    # --- 左：這個月多花的錢，按類型拆解（變貴 vs 買更多 堆疊）---
+    # --- 左：增量拆解（變貴 vs 買更多）---
     top = dec.reindex(dec["delta_spend"].abs().sort_values(ascending=False).index).head(TOP_BREAKDOWN)
-    top = top.iloc[::-1]  # 由小到大，畫在下→上
+    top = top.iloc[::-1]
     y = np.arange(len(top))
     labels = [str(s)[:14] for s in top["type_label"]]
     ax1.barh(y, top["變貴_price"], color="#d9534f", label="變貴 (價)")
@@ -180,13 +187,17 @@ def plot_user(u, dec, sub, cur, n_base, total_extra, path):
     ax1.set_title(f"user {u}｜這個月({cur})比平常{sign} {abs(total_extra):.0f} 元，花在哪些類型")
     ax1.legend(loc="lower right")
 
-    # --- 右：類型單價成長歷史（前 N 高花費類型）---
     top_spend = dec.reindex(dec["current_spend"].sort_values(ascending=False).index).head(TOP_HISTORY)
-    ts = monthly_unit_price(sub, top_spend["topic"].tolist())
+    topic_list = top_spend["topic"].tolist()
     label_map = dict(zip(dec["topic"], dec["type_label"]))
-    all_months = sorted(sub["month"].unique())           # 全域排序月份，避免亂序
+    all_months = sorted(sub["month"].unique())
     mpos = {m: i for i, m in enumerate(all_months)}
-    for t in top_spend["topic"]:
+    xticks = range(len(all_months))
+    xlabels = [str(m) for m in all_months]
+
+    # --- 中：平均單價成長歷史（價格/數量）---
+    ts = monthly_unit_price(sub, topic_list)
+    for t in topic_list:
         d = ts[ts["topic"] == t].sort_values("month")
         if len(d) < 2:
             continue
@@ -194,11 +205,25 @@ def plot_user(u, dec, sub, cur, n_base, total_extra, path):
         chg = (last / first - 1) * 100 if first else 0
         lab = f"{str(label_map[t])[:10]} ({chg:+.0f}%)"
         ax2.plot([mpos[m] for m in d["month"]], d["unit_price"].values, marker="o", label=lab)
-    ax2.set_xticks(range(len(all_months)))
-    ax2.set_xticklabels([str(m) for m in all_months], rotation=45, ha="right")
-    ax2.set_xlabel("month"); ax2.set_ylabel("加權平均單價 (NT$)")
-    ax2.set_title(f"user {u}｜主要類型的單價成長歷史")
+    ax2.set_xticks(xticks); ax2.set_xticklabels(xlabels, rotation=45, ha="right")
+    ax2.set_xlabel("month"); ax2.set_ylabel("平均單價 (NT$)")
+    ax2.set_title(f"user {u}｜主要類型平均單價歷史")
     ax2.legend(fontsize=8, loc="best")
+
+    # --- 右：月購買數量歷史 ---
+    tq = monthly_qty(sub, topic_list)
+    for t in topic_list:
+        d = tq[tq["topic"] == t].sort_values("month")
+        if len(d) < 2:
+            continue
+        first, last = d["qty"].iloc[0], d["qty"].iloc[-1]
+        chg = (last / first - 1) * 100 if first else 0
+        lab = f"{str(label_map[t])[:10]} ({chg:+.0f}%)"
+        ax3.plot([mpos[m] for m in d["month"]], d["qty"].values, marker="o", label=lab)
+    ax3.set_xticks(xticks); ax3.set_xticklabels(xlabels, rotation=45, ha="right")
+    ax3.set_xlabel("month"); ax3.set_ylabel("月購買數量")
+    ax3.set_title(f"user {u}｜主要類型月購買數量歷史")
+    ax3.legend(fontsize=8, loc="best")
 
     fig.tight_layout()
     fig.savefig(path, dpi=140, bbox_inches="tight")
